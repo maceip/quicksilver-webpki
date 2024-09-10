@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# This script can be used to generate a root ca
+# developing PaperAge.
+
+set -euo pipefail
+
+function gen_rootca {
+
+  openssl genrsa -des3 -out rootCA.key 4096
+  openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 1024 -out rootCA.crt
+  openssl genrsa -out mac.com.key 2048
+  openssl req -new -sha256 -key mac.com.key -subj "/C=US/ST=CA/O=MAC, Inc./CN=$@" -out mac.com.csr
+  openssl req -in mac.com.csr -noout -text
+  openssl x509 -req -in mac.com.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out mac.com.crt -days 500 -sha256
+  openssl x509 -in mac.com.crt -text -noout
+}
+
+gen_rootca "$@"
